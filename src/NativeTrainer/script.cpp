@@ -1,27 +1,26 @@
 /*
-							FX TRAINER
+FX TRAINER
 
-	This is the Native Trailer from Alex B. with new features and UI.
-							Edited by FXEntity.
-	
-	Big thanks to:
-							http://dev-c.com
-						(C) Alexander Blade 2015
-	
-	for Script Hook V and Native Trailer.
-	*/
+This is the Native Trailer from Alex B. with new features and UI.
+Edited by FXEntity.
+
+Big thanks to:
+http://dev-c.com
+(C) Alexander Blade 2015
+for Script Hook V and Native Trailer.
+*/
 
 /*
-	Controls:
+Controls:
 
-	F11					activate
-	NUM2/8/4/6			navigate thru the menus and lists (numlock must be on)
-	NUM5 				select
-	NUM0/BACKSPACE/F4 	back
-	NUM9/3 				use vehicle boost when active
-	NUM+ 				use vehicle rockets when active
-	INSERT				activate/desactive invincible mode
-	*/
+F11					activate
+NUM2/8/4/6			navigate thru the menus and lists (numlock must be on)
+NUM5 				select
+NUM0/BACKSPACE/F4 	back
+NUM9/3 				use vehicle boost when active
+NUM+ 				use vehicle rockets when active
+INSERT				activate/desactive invincible mode
+*/
 
 #include "script.h"
 #include "keyboard.h"
