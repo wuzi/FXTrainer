@@ -1,51 +1,58 @@
 /*
-FX TRAINER
-
-This is the Native Trailer from Alex B. with new features and UI.
-Edited by FXEntity.
-
-Big thanks to:
-http://dev-c.com
-(C) Alexander Blade 2015
-for Script Hook V and Native Trailer.
+*						FX TRAINER
+*
+* A multi-purpose cheat tool for Grand Theft Auto V.
+* It is an edit of Native Trainer made by Alexander Blade.
+* It has New UI and features.
+*
+* Big thanks to:
+*	Alexander Blade (Script Hook V & Native Trainer)
+*	http://dev-c.com
+*
+* Controls:
+*	F11					Activate
+*	NUM2/8/4/6			Navigate
+*	NUM0/BACKSPACE/F4	Back
+*	NUM5				Select
+*	NUM9/3				Vehicle Boost (when activated)
+*	NUM+				Vehicle Rocket(when activated)
+*	INSERT				Toggle godmode
+*
+* AirBreak Controls:
+*	DEL				Toggle AirBrk
+*	NUM8			Move forward
+*	NUM2			Move backward
+*	NUM7			Move up
+*	NUM9			Move down
+*	NUM4			Turn left
+*	NUM6			Turn right
+*	NUM5			(Un)freeze position
 */
-
-/*
-Controls:
-
-F11					activate
-NUM2/8/4/6			navigate thru the menus and lists (numlock must be on)
-NUM5 				select
-NUM0/BACKSPACE/F4 	back
-NUM9/3 				use vehicle boost when active
-NUM+ 				use vehicle rockets when active
-INSERT				toggle invincible mode
-DEL					toggle airbrk
-NUM7/8/9/2			control airbrk
-NUM5				freeze airbrk
-*/
-
-#include "script.h"
-#include "keyboard.h"
 
 #include <string>
 #include <ctime>
+#include "script.h"
+#include "keyboard.h"
 
 #define MOD_VERSION	"GTA V: FX TRAINER v0.2"
 
-#pragma warning(disable : 4244 4305) // double <-> float conversions
+// double <-> float conversions
+#pragma warning(disable : 4244 4305)
 
-// Menu positions
-float W = 339.0, H = 9.0, Y = 445.0, X = 529.0;
+// menu position
+const float MENU_WIDTH = 339.0;
+const float MENU_HEIGHT = 9.0;
+const float MENU_AXIS_Y = 445.0;
+const float MENU_AXIS_X = 529.0;
 
-// Money
-int gMoneyToAdd = 1000000;
+// amount of money to give to player
+int g_nMoneyValue = 1000000;
 
-// Hide M0d HUD
-bool bShowModHUD = true;
+// is footer hud shown
+bool g_bIsHudVisible = true;
 
-// Is airbrk freezed
-bool bIsEntityFreezed = false;
+// is airbreak position frozen
+bool g_bIsEntityPosFrozen = false;
 
 void draw_rect(float A_0, float A_1, float A_2, float A_3, int A_4, int A_5, int A_6, int A_7)
 {
@@ -62,15 +69,24 @@ void draw_menu_box(float lineWidth, float lineHeight, float lineTop, float lineL
 
 	textLeft += lineLeft;
 
-	float lineWidthScaled = lineWidth / (float)screen_w; // line width
-	float lineTopScaled = lineTop / (float)screen_h; // line top offset
-	float textLeftScaled = textLeft / (float)screen_w; // text left offset
-	float lineHeightScaled = lineHeight / (float)screen_h; // line height
+	// line width
+	float lineWidthScaled = lineWidth / (float)screen_w;
+
+	// line top offset
+	float lineTopScaled = lineTop / (float)screen_h;
+
+	// text left offset
+	float textLeftScaled = textLeft / (float)screen_w;
+
+	// line height
+	float lineHeightScaled = lineHeight / (float)screen_h;
+
+	// line left offset
 	float lineLeftScaled = lineLeft / (float)screen_w;
 
 	int num25 = UI::_0x9040DFB09BE75706(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f));
 
-	// rect
+	// draw rect on the screen
 	draw_rect(lineLeftScaled, lineTopScaled + (0.00278f),
 		lineWidthScaled, ((((float)(num25)* UI::_0xDB88A37483346780(scale, 0)) + (lineHeightScaled * 2.0f)) + 0.005f),
 		rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
@@ -84,9 +100,14 @@ void draw_text(std::string caption, float lineHeight, float lineTop, float lineL
 
 	textLeft += lineLeft;
 
-	float lineTopScaled = lineTop / (float)screen_h; // line top offset
-	float textLeftScaled = textLeft / (float)screen_w; // text left offset
-	float lineHeightScaled = lineHeight / (float)screen_h; // line height
+	// line top offset
+	float lineTopScaled = lineTop / (float)screen_h;
+
+	// text left offset
+	float textLeftScaled = textLeft / (float)screen_w;
+
+	// line height
+	float lineHeightScaled = lineHeight / (float)screen_h;
 
 	float lineLeftScaled = lineLeft / (float)screen_w;
 
@@ -118,10 +139,10 @@ void draw_text(std::string caption, float lineHeight, float lineTop, float lineL
 void draw_menu_line(std::string caption, float lineWidth, float lineHeight, float lineTop, float lineLeft, float textLeft, bool active, bool title, bool rescaleText = true)
 {
 	// default values
-	int text_col[4] = { 255, 255, 255, 170 },
-		rect_col[4] = { 0, 77, 154, 170 };
-	float text_scale = 0.35;
-	int font = 0;
+	int text_col[4] = { 255, 255, 255, 170 };	// text color (RGBA)
+	int rect_col[4] = { 0, 77, 154, 170 };		// rect color (RGBA)
+	float text_scale = 0.35;					// text size
+	int font = 0;								// font type
 
 	// correcting values for active line
 	if (active)
@@ -152,11 +173,19 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 
 	textLeft += lineLeft;
 
-	float lineWidthScaled = lineWidth / (float)screen_w; // line width
-	float lineTopScaled = lineTop / (float)screen_h; // line top offset
-	float textLeftScaled = textLeft / (float)screen_w; // text left offset
-	float lineHeightScaled = lineHeight / (float)screen_h; // line height
+	// line width
+	float lineWidthScaled = lineWidth / (float)screen_w;
 
+	// line top offset
+	float lineTopScaled = lineTop / (float)screen_h;
+
+	// text left offset
+	float textLeftScaled = textLeft / (float)screen_w;
+
+	// line height
+	float lineHeightScaled = lineHeight / (float)screen_h;
+
+	// line left offset
 	float lineLeftScaled = lineLeft / (float)screen_w;
 
 	// this is how it's done in original scripts
@@ -183,12 +212,13 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 	UI::_ADD_TEXT_COMPONENT_STRING((LPSTR)caption.c_str());
 	int num25 = UI::_0x9040DFB09BE75706(textLeftScaled, (((lineTopScaled + 0.00278f) + lineHeightScaled) - 0.005f));
 
-	// rect
+	// draw rect on screen
 	draw_rect(lineLeftScaled, lineTopScaled + (0.00278f),
 		lineWidthScaled, ((((float)(num25)* UI::_0xDB88A37483346780(text_scale, 0)) + (lineHeightScaled * 2.0f)) + 0.005f),
 		rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
 }
 
+// check if F11 key was released
 bool trainer_switch_pressed()
 {
 	return IsKeyJustUp(VK_F11);
@@ -204,6 +234,7 @@ void get_button_state(bool *a, bool *b, bool *up, bool *down, bool *l, bool *r)
 	if (l) *l = IsKeyDown(VK_NUMPAD4);
 }
 
+// play navigation menu sound
 void menu_beep()
 {
 	AUDIO::PLAY_SOUND_FRONTEND(-1, "NAV_UP_DOWN", "HUD_FRONTEND_DEFAULT_SOUNDSET", 0);
@@ -225,9 +256,7 @@ void update_status_text()
 		UI::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
 		UI::SET_TEXT_EDGE(1, 0, 0, 0, 205);
 		if (statusTextGxtEntry)
-		{
 			UI::_SET_TEXT_ENTRY((char *)statusText.c_str());
-		}
 		else
 		{
 			UI::_SET_TEXT_ENTRY("STRING");
@@ -329,7 +358,7 @@ void update_vehicle_guns()
 
 	if (!ENTITY::DOES_ENTITY_EXIST(playerPed) || !featureWeaponVehRockets) return;
 
-	bool bSelect = IsKeyDown(0x6B); // num plus
+	bool bSelect = IsKeyDown(0x6B); // numlock plus
 	if (bSelect && featureWeaponVehShootLastTime + 150 < GetTickCount() &&
 		PLAYER::IS_PLAYER_CONTROL_ON(player) && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
 	{
@@ -412,15 +441,15 @@ void update_features()
 		else
 		{
 			featurePlayerAirBrk = false;
-			bIsEntityFreezed = false;
+			g_bIsEntityPosFrozen = false;
 
 			if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
 			{
 				Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-				ENTITY::FREEZE_ENTITY_POSITION(veh, bIsEntityFreezed);
+				ENTITY::FREEZE_ENTITY_POSITION(veh, g_bIsEntityPosFrozen);
 			}
 			else
-				ENTITY::FREEZE_ENTITY_POSITION(playerPed, bIsEntityFreezed);
+				ENTITY::FREEZE_ENTITY_POSITION(playerPed, g_bIsEntityPosFrozen);
 		}
 	}
 
@@ -611,12 +640,12 @@ void update_features()
 			if (bLeft)
 				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) + 3.0);
 			if (bRight)
-				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) - 3.0);		
-			
+				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) - 3.0);
+
 			if (IsKeyJustUp(VK_NUMPAD5))
 			{
-				bIsEntityFreezed = (bIsEntityFreezed) ? false : true;
-				ENTITY::FREEZE_ENTITY_POSITION(playerPed, bIsEntityFreezed);
+				g_bIsEntityPosFrozen = (g_bIsEntityPosFrozen) ? false : true;
+				ENTITY::FREEZE_ENTITY_POSITION(playerPed, g_bIsEntityPosFrozen);
 			}
 		}
 		else
@@ -636,12 +665,12 @@ void update_features()
 			if (bLeft)
 				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) + 3.0);
 			if (bRight)
-				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) - 3.0);			
-			
+				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) - 3.0);
+
 			if (IsKeyJustUp(VK_NUMPAD5))
 			{
-				bIsEntityFreezed = (bIsEntityFreezed) ? false : true;
-				ENTITY::FREEZE_ENTITY_POSITION(veh, bIsEntityFreezed);
+				g_bIsEntityPosFrozen = (g_bIsEntityPosFrozen) ? false : true;
+				ENTITY::FREEZE_ENTITY_POSITION(veh, g_bIsEntityPosFrozen);
 			}
 		}
 	}
@@ -666,18 +695,17 @@ void update_features()
 	if (featureMiscHideHud)
 		UI::HIDE_HUD_AND_RADAR_THIS_FRAME();
 
-	// Trainer bar
-
-	if (bShowModHUD == true)
+	// trainer hud
+	if (g_bIsHudVisible == true)
 	{
 		int text_col_active[4] = { 0, 255, 0, 255 };
 		char text[64];
 
-		// BG
+		// background
 		int rect_col[4] = { 0, 0, 0, 150 };
 		draw_menu_box(705, 8, 699, 370, 0.0, rect_col);
 
-		// HP
+		// health bar
 		float playerHealth = ENTITY::GET_ENTITY_HEALTH(playerPed);
 		playerHealth -= 100.0;
 		if (playerHealth > 100.0) playerHealth = 100.0;
@@ -703,9 +731,10 @@ void update_features()
 		int text_col[4] = { 255, 255, 255, 255 };
 		draw_text(text, 8.0, 704.0, 389.5, 9.0, text_col, 0, 0.20);
 
-		// Speed
+		// in vehicle hud
 		if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, false))
 		{
+			// speed
 			float playerSpeed = ENTITY::GET_ENTITY_SPEED(playerPed);
 			playerSpeed *= 3.6;
 			if (playerSpeed > 250.0) playerSpeed = 250.0;
@@ -720,7 +749,7 @@ void update_features()
 			sprintf_s(text, "KM/H: %.0f", playerSpeed);
 			draw_text(text, 8.0, 686.0, 389.0, 9.0, text_col, 0, 0.20);
 
-			// Veh Health
+			// veh health
 			float vehicleHealth = ENTITY::GET_ENTITY_HEALTH(PED::GET_VEHICLE_PED_IS_IN(playerPed, false));
 			if (vehicleHealth > 1000.0) vehicleHealth = 1000.0;
 			else if (vehicleHealth < 0.0) vehicleHealth = 0.0;
@@ -735,7 +764,7 @@ void update_features()
 		}
 		else
 		{
-			// Armour
+			// armour
 			float playerArmour = PED::GET_PED_ARMOUR(playerPed);
 			if (playerArmour > 100.0) playerArmour = 100.0;
 
@@ -748,7 +777,7 @@ void update_features()
 			draw_text(text, 8.0, 696.0, 389.0, 9.0, text_col, 0, 0.20);
 		}
 
-		// COORDS
+		// coords
 		Vector3 pedPosition = ENTITY::GET_ENTITY_COORDS(playerPed, true);
 
 		sprintf_s(text, "%.2f", pedPosition.x);
@@ -763,7 +792,7 @@ void update_features()
 		sprintf_s(text, "(%d)", INTERIOR::GET_INTERIOR_FROM_ENTITY(playerPed));
 		draw_text(text, 8.0, 697.0, 995.0, 9.0, text_col, 0, 0.35);
 
-		// INFO
+		// info
 		draw_text("[      ] [         ] [             ] [                    ] [               ]", 8.0, 696.0, 465.0, 9.0, text_col, 0, 0.35);
 
 		if (featurePlayerInvincible)
@@ -952,17 +981,17 @@ bool process_skinchanger_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 235.0, 334.0, 528.0, 9.0, rect_col);
 
 			// draw menu
 			char caption[32];
 			sprintf_s(caption, "SKIN CHANGER   %d / %d", skinchangerActiveLineIndex + 1, lineCount);
-			draw_menu_line(caption, W, H + 5.0, (Y - 108.0) - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, (MENU_AXIS_Y - 108.0) - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < itemCount; i++)
 				if (strlen(pedModels[skinchangerActiveLineIndex][i]) || strcmp(pedModelNames[skinchangerActiveLineIndex][i], "NONE") == 0)
-					draw_menu_line(pedModelNames[skinchangerActiveLineIndex][i], W, H, (Y - 108.0) + i * 36.0, X, 7.0, i == skinchangerActiveItemIndex, false, false);
+					draw_menu_line(pedModelNames[skinchangerActiveLineIndex][i], MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 108.0) + i * 36.0, MENU_AXIS_X, 7.0, i == skinchangerActiveItemIndex, false, false);
 
 			update_features();
 			WAIT(0);
@@ -1090,23 +1119,23 @@ bool process_teleport_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			int row = 0, rowActive = 0;
 			for (int i = currentMinIndexTeleport; i < currentMaxIndexTeleport; i++)
 			{
 				if (i != teleportActiveLineIndex)
-					draw_menu_line(lines[i].text, W, H, Y + row * 36.0, X, 9.0, false, false);
+					draw_menu_line(lines[i].text, MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
 				else
 					rowActive = row;
 
 				row++;
 			}
-			draw_menu_line(lines[teleportActiveLineIndex].text, W + 1.0, H + 2.0, (Y - 4.0) + rowActive * 36.0, X, 7.0, true, false);
+			draw_menu_line(lines[teleportActiveLineIndex].text, MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1290,29 +1319,29 @@ void process_player_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			int row = 0, rowActive = 0;
 			for (int i = currentMinIndexPlayer; i < currentMaxIndexPlayer; i++)
 			{
 				if (i != activeLineIndexPlayer)
 					if (i == 4)
-						draw_menu_line(line_with_value(lines[i].text, gMoneyToAdd), W, H, Y + row * 36.0, X, 9.0, false, false);
+						draw_menu_line(line_with_value(lines[i].text, g_nMoneyValue), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
 					else
-						draw_menu_line(line_as_str(lines[i].text, lines[i].pState), W, H, Y + row * 36.0, X, 9.0, false, false);
+						draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
 				else
 					rowActive = row;
 
 				row++;
 			}
 			if (activeLineIndexPlayer != 4)
-				draw_menu_line(line_as_str(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].pState), W + 1.0, H + 2.0, (Y - 4.0) + rowActive * 36.0, X, 7.0, true, false);
+				draw_menu_line(line_as_str(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 			else
-				draw_menu_line(line_with_value(lines[activeLineIndexPlayer].text, gMoneyToAdd), W + 1.0, H + 2.0, (Y - 4.0) + rowActive * 36.0, X, 7.0, true, false);
+				draw_menu_line(line_with_value(lines[activeLineIndexPlayer].text, g_nMoneyValue), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1371,7 +1400,7 @@ void process_player_menu()
 					Hash hash = GAMEPLAY::GET_HASH_KEY(statNameFull);
 					int val;
 					STATS::STAT_GET_INT(hash, &val, -1);
-					val += gMoneyToAdd;
+					val += g_nMoneyValue;
 					STATS::STAT_SET_INT(hash, val, 1);
 				}
 				set_status_text("cash added");
@@ -1447,7 +1476,7 @@ void process_player_menu()
 			if (activeLineIndexPlayer == 4)
 			{
 				menu_beep();
-				gMoneyToAdd -= 100000;
+				g_nMoneyValue -= 100000;
 				waitTime = 150;
 			}
 		}
@@ -1456,7 +1485,7 @@ void process_player_menu()
 			if (activeLineIndexPlayer == 4)
 			{
 				menu_beep();
-				gMoneyToAdd += 100000;
+				g_nMoneyValue += 100000;
 				waitTime = 150;
 			}
 		}
@@ -1505,16 +1534,16 @@ void process_weapon_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexWeapon)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), W, H, Y + i * 36.0, X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexWeapon].text, lines[activeLineIndexWeapon].pState), W + 1.0, H + 2.0, (Y - 4.0) + activeLineIndexWeapon * 36.0, X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexWeapon].text, lines[activeLineIndexWeapon].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexWeapon * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1626,17 +1655,17 @@ bool process_carspawn_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 235.0, 334.0, 528.0, 9.0, rect_col);
 
 			// draw menu
 			char caption[32];
 			sprintf_s(caption, "CAR SPAWNER %d / %d", carspawnActiveLineIndex + 1, lineCount);
-			draw_menu_line(caption, W, H + 5.0, (Y - 108.0) - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, (MENU_AXIS_Y - 108.0) - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < itemCount; i++)
 				if (strlen(vehicleModels[carspawnActiveLineIndex][i]))
-					draw_menu_line(vehicleModels[carspawnActiveLineIndex][i], W, H, (Y - 108.0) + i * 36.0, X, 7.0, i == carspawnActiveItemIndex, false, false);
+					draw_menu_line(vehicleModels[carspawnActiveLineIndex][i], MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 108.0) + i * 36.0, MENU_AXIS_X, 7.0, i == carspawnActiveItemIndex, false, false);
 
 			update_features();
 			WAIT(0);
@@ -1750,16 +1779,16 @@ void process_veh_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexVeh)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), W, H, Y + i * 36.0, X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexVeh].text, lines[activeLineIndexVeh].pState), W + 1.0, H + 2.0, (Y - 4.0) + activeLineIndexVeh * 36.0, X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexVeh].text, lines[activeLineIndexVeh].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexVeh * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1867,16 +1896,16 @@ void process_world_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexWorld)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), W, H, Y + i * 36.0, X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexWorld].text, lines[activeLineIndexWorld].pState), W + 1.0, H + 2.0, (Y - 4.0) + activeLineIndexWorld * 36.0, X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexWorld].text, lines[activeLineIndexWorld].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexWorld * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1965,16 +1994,16 @@ void process_time_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexTime)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), W, H, Y + i * 36.0, X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexTime].text, lines[activeLineIndexTime].pState), W + 1.0, H + 2.0, (Y - 4.0) + activeLineIndexTime * 36.0, X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexTime].text, lines[activeLineIndexTime].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexTime * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -2075,23 +2104,23 @@ void process_weather_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			int row = 0, rowActive = 0;
 			for (int i = currentMinIndexWeather; i < currentMaxIndexWeather; i++)
 			{
 				if (i != activeLineIndexWeather)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), W, H, Y + row * 36.0, X, 9.0, false, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
 				else
 					rowActive = row;
 
 				row++;
 			}
-			draw_menu_line(line_as_str(lines[activeLineIndexWeather].text, lines[activeLineIndexWeather].pState), W + 1.0, H + 2.0, (Y - 4.0) + rowActive * 36.0, X, 7.0, true, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexWeather].text, lines[activeLineIndexWeather].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 			update_features();
 			WAIT(0);
 		} while (GetTickCount() < maxTickCount);
@@ -2191,7 +2220,7 @@ void process_misc_menu()
 		{ "3. Hide Trainer HUD", NULL, NULL }
 	};
 
-	lines[2].text = (bShowModHUD) ? "3. Hide Trainer HUD" : "3. Show Trainer HUD";
+	lines[2].text = (g_bIsHudVisible) ? "3. Hide Trainer HUD" : "3. Show Trainer HUD";
 
 	DWORD waitTime = 150;
 	while (true)
@@ -2200,16 +2229,16 @@ void process_misc_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexMisc)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), W, H, Y + i * 36.0, X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexMisc].text, lines[activeLineIndexMisc].pState), W + 1.0, H + 2.0, (Y - 4.0) + activeLineIndexMisc * 36.0, X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexMisc].text, lines[activeLineIndexMisc].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexMisc * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -2232,8 +2261,8 @@ void process_misc_menu()
 				break;
 				// hide trainer hud
 			case 2:
-				bShowModHUD = (bShowModHUD) ? false : true;
-				lines[2].text = (bShowModHUD) ? "3. Hide Trainer HUD" : "3. Show Trainer HUD";
+				g_bIsHudVisible = (g_bIsHudVisible) ? false : true;
+				lines[2].text = (g_bIsHudVisible) ? "3. Hide Trainer HUD" : "3. Show Trainer HUD";
 				break;
 				// switchable features
 			default:
@@ -2294,16 +2323,16 @@ void process_main_menu()
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do
 		{
-			// BG Menu
+			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
 			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
 
 			// draw menu
-			draw_menu_line(caption, W, H + 5.0, Y - 54.5, X, 5.0, false, true);
+			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexMain)
-					draw_menu_line(lineCaption[i], W, H, Y + i * 36.0, X, 9.0, false, false);
-			draw_menu_line(lineCaption[activeLineIndexMain], W + 1.0, H + 2.0, (Y - 4.0) + activeLineIndexMain * 36.0, X, 7.0, true, false);
+					draw_menu_line(lineCaption[i], MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
+			draw_menu_line(lineCaption[activeLineIndexMain], MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexMain * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
