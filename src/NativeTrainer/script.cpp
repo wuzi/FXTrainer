@@ -19,7 +19,10 @@ NUM5 				select
 NUM0/BACKSPACE/F4 	back
 NUM9/3 				use vehicle boost when active
 NUM+ 				use vehicle rockets when active
-INSERT				activate/desactive invincible mode
+INSERT				toggle invincible mode
+DEL					toggle airbrk
+NUM7/8/9/2			control airbrk
+NUM5				freeze airbrk
 */
 
 #include "script.h"
@@ -28,13 +31,21 @@ INSERT				activate/desactive invincible mode
 #include <string>
 #include <ctime>
 
-#define MOD_VERSION	"GTA V: FX TRAINER v0.1"
+#define MOD_VERSION	"GTA V: FX TRAINER v0.2"
 
 #pragma warning(disable : 4244 4305) // double <-> float conversions
 
 // Menu positions
 float W = 339.0, H = 9.0, Y = 445.0, X = 529.0;
+
+// Money
 int gMoneyToAdd = 1000000;
+
+// Hide M0d HUD
+bool bShowModHUD = true;
+
+// Is airbrk freezed
+bool bIsEntityFreezed = false;
 
 void draw_rect(float A_0, float A_1, float A_2, float A_3, int A_4, int A_5, int A_6, int A_7)
 {
@@ -236,6 +247,7 @@ void set_status_text(std::string str, DWORD time = 2500, bool isGxtEntry = false
 // features
 bool featurePlayerInvincible = false;
 bool featurePlayerInvincibleUpdated = false;
+bool featurePlayerAirBrk = false;
 bool featurePlayerNeverWanted = false;
 bool featurePlayerIgnored = false;
 bool featurePlayerIgnoredUpdated = false;
@@ -390,6 +402,25 @@ void update_features()
 			featureVehInvincible = false;
 			featurePlayerInvincibleUpdated = true;
 			featureVehInvincibleUpdated = true;
+		}
+	}
+
+	if (IsKeyJustUp(VK_DELETE))
+	{
+		if (!featurePlayerAirBrk)
+			featurePlayerAirBrk = true;
+		else
+		{
+			featurePlayerAirBrk = false;
+			bIsEntityFreezed = false;
+
+			if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
+			{
+				Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+				ENTITY::FREEZE_ENTITY_POSITION(veh, bIsEntityFreezed);
+			}
+			else
+				ENTITY::FREEZE_ENTITY_POSITION(playerPed, bIsEntityFreezed);
 		}
 	}
 
@@ -552,6 +583,69 @@ void update_features()
 		}
 	}
 
+	// player air break
+	if (featurePlayerAirBrk && bPlayerExists)
+	{
+		bool bForward = IsKeyDown(VK_NUMPAD8);
+		bool bBackward = IsKeyDown(VK_NUMPAD2);
+		bool bUp = IsKeyDown(VK_NUMPAD7);
+		bool bDown = IsKeyDown(VK_NUMPAD9);
+		bool bLeft = IsKeyDown(VK_NUMPAD4);
+		bool bRight = IsKeyDown(VK_NUMPAD6);
+
+		int multiplier = 3;
+
+		if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
+		{
+			Vector3 playerForwardPos = ENTITY::GET_ENTITY_FORWARD_VECTOR(playerPed);
+			Vector3 playerPos = ENTITY::GET_ENTITY_COORDS(playerPed, true);
+
+			if (bForward)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x + (playerForwardPos.x * multiplier), playerPos.y + (playerForwardPos.y * multiplier), playerPos.z, 0, 0, 0);
+			if (bBackward)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x - (playerForwardPos.x * multiplier), playerPos.y - (playerForwardPos.y * multiplier), playerPos.z, 0, 0, 0);
+			if (bUp)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x, playerPos.y, playerPos.z + 1.0, 0, 0, 0);
+			if (bDown)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x, playerPos.y, playerPos.z - 1.0, 0, 0, 0);
+			if (bLeft)
+				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) + 3.0);
+			if (bRight)
+				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) - 3.0);		
+			
+			if (IsKeyJustUp(VK_NUMPAD5))
+			{
+				bIsEntityFreezed = (bIsEntityFreezed) ? false : true;
+				ENTITY::FREEZE_ENTITY_POSITION(playerPed, bIsEntityFreezed);
+			}
+		}
+		else
+		{
+			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+			Vector3 vehForwardPos = ENTITY::GET_ENTITY_FORWARD_VECTOR(veh);
+			Vector3 vehPos = ENTITY::GET_ENTITY_COORDS(veh, true);
+
+			if (bForward)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x + (vehForwardPos.x * multiplier), vehPos.y + (vehForwardPos.y * multiplier), vehPos.z, 0, 0, 0);
+			if (bBackward)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x - (vehForwardPos.x * multiplier), vehPos.y - (vehForwardPos.y * multiplier), vehPos.z, 0, 0, 0);
+			if (bUp)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x, vehPos.y, vehPos.z + 1.0, 0, 0, 0);
+			if (bDown)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x, vehPos.y, vehPos.z - 1.0, 0, 0, 0);
+			if (bLeft)
+				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) + 3.0);
+			if (bRight)
+				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) - 3.0);			
+			
+			if (IsKeyJustUp(VK_NUMPAD5))
+			{
+				bIsEntityFreezed = (bIsEntityFreezed) ? false : true;
+				ENTITY::FREEZE_ENTITY_POSITION(veh, bIsEntityFreezed);
+			}
+		}
+	}
+
 	// time pause
 	if (featureTimePausedUpdated)
 	{
@@ -572,128 +666,131 @@ void update_features()
 	if (featureMiscHideHud)
 		UI::HIDE_HUD_AND_RADAR_THIS_FRAME();
 
-	// footer bar
-	// Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int text_col_active[4] = { 0, 255, 0, 255 };
-	char text[64];
+	// Trainer bar
 
-	// BG
-	int rect_col[4] = { 0, 0, 0, 150 };
-	draw_menu_box(705, 8, 699, 370, 0.0, rect_col);
-
-	// HP
-	float playerHealth = ENTITY::GET_ENTITY_HEALTH(playerPed);
-	playerHealth -= 100.0;
-	if (playerHealth > 100.0) playerHealth = 100.0;
-
-	int rect_col2[4] = { 39, 94, 39, 150 };
-	int rect_col4[4] = { 75, 148, 75, 150 };
-
-	if (playerHealth < 25.0)
+	if (bShowModHUD == true)
 	{
-		rect_col2[0] = 148;
-		rect_col2[1] = 0;
-		rect_col2[2] = 0;
+		int text_col_active[4] = { 0, 255, 0, 255 };
+		char text[64];
 
-		rect_col4[0] = 255;
-		rect_col4[1] = 0;
-		rect_col4[2] = 0;
+		// BG
+		int rect_col[4] = { 0, 0, 0, 150 };
+		draw_menu_box(705, 8, 699, 370, 0.0, rect_col);
+
+		// HP
+		float playerHealth = ENTITY::GET_ENTITY_HEALTH(playerPed);
+		playerHealth -= 100.0;
+		if (playerHealth > 100.0) playerHealth = 100.0;
+
+		int rect_col2[4] = { 39, 94, 39, 150 };
+		int rect_col4[4] = { 75, 148, 75, 150 };
+
+		if (playerHealth < 25.0)
+		{
+			rect_col2[0] = 148;
+			rect_col2[1] = 0;
+			rect_col2[2] = 0;
+
+			rect_col4[0] = 255;
+			rect_col4[1] = 0;
+			rect_col4[2] = 0;
+		}
+
+		draw_menu_box(100, 3, 709, 371, 0.0, rect_col2);
+		draw_menu_box(playerHealth, 3, 709, 371, 0.0, rect_col4);
+
+		sprintf_s(text, "Health: %.2f", playerHealth);
+		int text_col[4] = { 255, 255, 255, 255 };
+		draw_text(text, 8.0, 704.0, 389.5, 9.0, text_col, 0, 0.20);
+
+		// Speed
+		if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, false))
+		{
+			float playerSpeed = ENTITY::GET_ENTITY_SPEED(playerPed);
+			playerSpeed *= 3.6;
+			if (playerSpeed > 250.0) playerSpeed = 250.0;
+			else if (playerSpeed < 0.0) playerSpeed = 0.0;
+
+			int rect_col3[4] = { 165, 158, 0, 190 };
+			int rect_col5[4] = { 255, 244, 0, 190 };
+
+			draw_menu_box(100.0, 3.0, 689.5, 371.0, 0.0, rect_col3);
+			draw_menu_box((playerSpeed / 2.5), 3.0, 689.5, 371.0, 0.0, rect_col5);
+
+			sprintf_s(text, "KM/H: %.0f", playerSpeed);
+			draw_text(text, 8.0, 686.0, 389.0, 9.0, text_col, 0, 0.20);
+
+			// Veh Health
+			float vehicleHealth = ENTITY::GET_ENTITY_HEALTH(PED::GET_VEHICLE_PED_IS_IN(playerPed, false));
+			if (vehicleHealth > 1000.0) vehicleHealth = 1000.0;
+			else if (vehicleHealth < 0.0) vehicleHealth = 0.0;
+
+			int rect_col6[4] = { 28, 70, 95, 190 };
+			draw_menu_box(100, 3, 700, 371, 0.0, rect_col6);
+			int rect_col4[4] = { 62, 126, 164, 190 };
+			draw_menu_box((vehicleHealth / 10.0), 3, 700, 371, 0.0, rect_col4);
+
+			sprintf_s(text, "V-Health: %.2f", vehicleHealth);
+			draw_text(text, 8.0, 696.0, 389.0, 9.0, text_col, 0, 0.20);
+		}
+		else
+		{
+			// Armour
+			float playerArmour = PED::GET_PED_ARMOUR(playerPed);
+			if (playerArmour > 100.0) playerArmour = 100.0;
+
+			int rect_col3[4] = { 28, 70, 95, 190 };
+			draw_menu_box(100, 3, 700, 371, 0.0, rect_col3);
+			int rect_col5[4] = { 62, 126, 164, 190 };
+			draw_menu_box(playerArmour, 3, 700, 371, 0.0, rect_col5);
+
+			sprintf_s(text, "Armor: %d.00", PED::GET_PED_ARMOUR(playerPed));
+			draw_text(text, 8.0, 696.0, 389.0, 9.0, text_col, 0, 0.20);
+		}
+
+		// COORDS
+		Vector3 pedPosition = ENTITY::GET_ENTITY_COORDS(playerPed, true);
+
+		sprintf_s(text, "%.2f", pedPosition.x);
+		draw_text(text, 8.0, 697.0, 800.0, 9.0, text_col, 0, 0.35);
+
+		sprintf_s(text, "%.2f", pedPosition.y);
+		draw_text(text, 8.0, 697.0, 865.0, 9.0, text_col, 0, 0.35);
+
+		sprintf_s(text, "%.2f", pedPosition.z);
+		draw_text(text, 8.0, 697.0, 930.0, 9.0, text_col, 0, 0.35);
+
+		sprintf_s(text, "(%d)", INTERIOR::GET_INTERIOR_FROM_ENTITY(playerPed));
+		draw_text(text, 8.0, 697.0, 995.0, 9.0, text_col, 0, 0.35);
+
+		// INFO
+		draw_text("[      ] [         ] [             ] [                    ] [               ]", 8.0, 696.0, 465.0, 9.0, text_col, 0, 0.35);
+
+		if (featurePlayerInvincible)
+			draw_text("INV", 8.0, 696.0, 470.0, 9.0, text_col_active, 0, 0.35);
+		else
+			draw_text("INV", 8.0, 696.0, 470.0, 9.0, text_col, 0, 0.35);
+
+		if (featureVehInvincible)
+			draw_text("V-INV", 8.0, 696.0, 507.0, 9.0, text_col_active, 0, 0.35);
+		else
+			draw_text("V-INV", 8.0, 696.0, 507.0, 9.0, text_col, 0, 0.35);
+
+		if (featureVehSpeedBoost)
+			draw_text("BOOST", 8.0, 696.0, 560.0, 9.0, text_col_active, 0, 0.35);
+		else
+			draw_text("BOOST", 8.0, 696.0, 560.0, 9.0, text_col, 0, 0.35);
+
+		if (featurePlayerAirBrk)
+			draw_text("AIR BREAK", 8.0, 696.0, 625.9, 9.0, text_col_active, 0, 0.35);
+		else
+			draw_text("AIR BREAK", 8.0, 696.0, 625.9, 9.0, text_col, 0, 0.35);
+
+		if (featureWorldMoonGravity)
+			draw_text("GRAVITY", 8.0, 696.0, 719.0, 9.0, text_col_active, 0, 0.35);
+		else
+			draw_text("GRAVITY", 8.0, 696.0, 719.0, 9.0, text_col, 0, 0.35);
 	}
-
-	draw_menu_box(100, 3, 709, 371, 0.0, rect_col2);
-	draw_menu_box(playerHealth, 3, 709, 371, 0.0, rect_col4);
-
-	sprintf_s(text, "Health: %.2f", playerHealth);
-	int text_col[4] = { 255, 255, 255, 255 };
-	draw_text(text, 8.0, 704.0, 389.5, 9.0, text_col, 0, 0.20);
-
-	// Speed
-	if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, false))
-	{
-		float playerSpeed = ENTITY::GET_ENTITY_SPEED(playerPed);
-		playerSpeed *= 3.6;
-		if (playerSpeed > 250.0) playerSpeed = 250.0;
-		else if (playerSpeed < 0.0) playerSpeed = 0.0;
-
-		int rect_col3[4] = { 165, 158, 0, 190 };
-		int rect_col5[4] = { 255, 244, 0, 190 };
-
-		draw_menu_box(100.0, 3.0, 689.5, 371.0, 0.0, rect_col3);
-		draw_menu_box((playerSpeed / 2.5), 3.0, 689.5, 371.0, 0.0, rect_col5);
-
-		sprintf_s(text, "KM/H: %.0f", playerSpeed);
-		draw_text(text, 8.0, 686.0, 389.0, 9.0, text_col, 0, 0.20);
-
-		// Veh Health
-		float vehicleHealth = ENTITY::GET_ENTITY_HEALTH(PED::GET_VEHICLE_PED_IS_IN(playerPed, false));
-		if (vehicleHealth > 1000.0) vehicleHealth = 1000.0;
-		else if (vehicleHealth < 0.0) vehicleHealth = 0.0;
-
-		int rect_col6[4] = { 28, 70, 95, 190 };
-		draw_menu_box(100, 3, 700, 371, 0.0, rect_col6);
-		int rect_col4[4] = { 62, 126, 164, 190 };
-		draw_menu_box((vehicleHealth / 10.0), 3, 700, 371, 0.0, rect_col4);
-
-		sprintf_s(text, "V-Health: %.2f", vehicleHealth);
-		draw_text(text, 8.0, 696.0, 389.0, 9.0, text_col, 0, 0.20);
-	}
-	else
-	{
-		// Armour
-		float playerArmour = PED::GET_PED_ARMOUR(playerPed);
-		if (playerArmour > 100.0) playerArmour = 100.0;
-
-		int rect_col3[4] = { 28, 70, 95, 190 };
-		draw_menu_box(100, 3, 700, 371, 0.0, rect_col3);
-		int rect_col5[4] = { 62, 126, 164, 190 };
-		draw_menu_box(playerArmour, 3, 700, 371, 0.0, rect_col5);
-
-		sprintf_s(text, "Armor: %d.00", PED::GET_PED_ARMOUR(playerPed));
-		draw_text(text, 8.0, 696.0, 389.0, 9.0, text_col, 0, 0.20);
-	}
-
-	// COORDS
-	Vector3 pedPosition = ENTITY::GET_ENTITY_COORDS(playerPed, true);
-
-	sprintf_s(text, "%.2f", pedPosition.x);
-	draw_text(text, 8.0, 697.0, 800.0, 9.0, text_col, 0, 0.35);
-
-	sprintf_s(text, "%.2f", pedPosition.y);
-	draw_text(text, 8.0, 697.0, 865.0, 9.0, text_col, 0, 0.35);
-
-	sprintf_s(text, "%.2f", pedPosition.z);
-	draw_text(text, 8.0, 697.0, 930.0, 9.0, text_col, 0, 0.35);
-
-	sprintf_s(text, "(%d)", INTERIOR::GET_INTERIOR_FROM_ENTITY(playerPed));
-	draw_text(text, 8.0, 697.0, 995.0, 9.0, text_col, 0, 0.35);
-
-	// INFO
-	draw_text("[      ] [         ] [             ] [                    ] [               ]", 8.0, 696.0, 465.0, 9.0, text_col, 0, 0.35);
-
-	if (featurePlayerInvincible)
-		draw_text("INV", 8.0, 696.0, 470.0, 9.0, text_col_active, 0, 0.35);
-	else
-		draw_text("INV", 8.0, 696.0, 470.0, 9.0, text_col, 0, 0.35);
-
-	if (featureVehInvincible)
-		draw_text("V-INV", 8.0, 696.0, 507.0, 9.0, text_col_active, 0, 0.35);
-	else
-		draw_text("V-INV", 8.0, 696.0, 507.0, 9.0, text_col, 0, 0.35);
-
-	if (featureVehSpeedBoost)
-		draw_text("BOOST", 8.0, 696.0, 560.0, 9.0, text_col_active, 0, 0.35);
-	else
-		draw_text("BOOST", 8.0, 696.0, 560.0, 9.0, text_col, 0, 0.35);
-
-	if (featureWeaponNoReload)
-		draw_text("NO RELOAD", 8.0, 696.0, 623.0, 9.0, text_col_active, 0, 0.35);
-	else
-		draw_text("NO RELOAD", 8.0, 696.0, 623.0, 9.0, text_col, 0, 0.35);
-
-	if (featureWorldMoonGravity)
-		draw_text("GRAVITY", 8.0, 696.0, 719.0, 9.0, text_col_active, 0, 0.35);
-	else
-		draw_text("GRAVITY", 8.0, 696.0, 719.0, 9.0, text_col, 0, 0.35);
 }
 
 LPCSTR pedModels[69][10] = {
@@ -1159,7 +1256,7 @@ int currentMaxIndexPlayer = 7;
 void process_player_menu()
 {
 	const float lineWidth = 250.0;
-	const int lineCount = 15;
+	const int lineCount = 16;
 
 	std::string caption = "1. Player";
 
@@ -1182,7 +1279,8 @@ void process_player_menu()
 		{ "12. Noiseless", &featurePlayerNoNoise, &featurePlayerNoNoiseUpdated },
 		{ "13. Fast swm", &featurePlayerFastSwim, &featurePlayerFastSwimUpdated },
 		{ "14. Fast run", &featurePlayerFastRun, &featurePlayerFastRunUpdated },
-		{ "15. Super jump", &featurePlayerSuperJump, NULL }
+		{ "15. Super jump", &featurePlayerSuperJump, NULL },
+		{ "16. Air Break", &featurePlayerAirBrk, NULL }
 	};
 
 	DWORD waitTime = 150;
@@ -1317,7 +1415,7 @@ void process_player_menu()
 			{
 				activeLineIndexPlayer = lineCount;
 				currentMaxIndexPlayer = lineCount;
-				currentMinIndexPlayer = 8;
+				currentMinIndexPlayer = 9;
 			}
 			else if (currentMinIndexPlayer == activeLineIndexPlayer)
 			{
@@ -2079,7 +2177,7 @@ int activeLineIndexMisc = 0;
 void process_misc_menu()
 {
 	const float lineWidth = 250.0;
-	const int lineCount = 2;
+	const int lineCount = 3;
 
 	std::string caption = "7. Misc";
 
@@ -2089,9 +2187,11 @@ void process_misc_menu()
 		bool		*pUpdated;
 	} lines[lineCount] = {
 		{ "1. Next radio track", NULL, NULL },
-		{ "2. Hide HUD", &featureMiscHideHud, NULL }
+		{ "2. Hide HUD", &featureMiscHideHud, NULL },
+		{ "3. Hide Trainer HUD", NULL, NULL }
 	};
 
+	lines[2].text = (bShowModHUD) ? "3. Hide Trainer HUD" : "3. Show Trainer HUD";
 
 	DWORD waitTime = 150;
 	while (true)
@@ -2129,6 +2229,11 @@ void process_misc_menu()
 				if (ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) &&
 					PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0))
 					AUDIO::SKIP_RADIO_FORWARD();
+				break;
+				// hide trainer hud
+			case 2:
+				bShowModHUD = (bShowModHUD) ? false : true;
+				lines[2].text = (bShowModHUD) ? "3. Hide Trainer HUD" : "3. Show Trainer HUD";
 				break;
 				// switchable features
 			default:
@@ -2278,6 +2383,7 @@ void reset_globals()
 
 	featurePlayerInvincible =
 		featurePlayerInvincibleUpdated =
+		featurePlayerAirBrk =
 		featurePlayerNeverWanted =
 		featurePlayerIgnored =
 		featurePlayerIgnoredUpdated =
