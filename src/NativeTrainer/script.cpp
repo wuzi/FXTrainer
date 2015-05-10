@@ -11,22 +11,23 @@
 *
 * Controls:
 *	F11					Activate
+*	F12					Toggle trainer HUD
 *	NUM2/8/4/6			Navigate
 *	NUM0/BACKSPACE/F4	Back
 *	NUM5				Select
 *	NUM9/3				Vehicle Boost (when activated)
 *	NUM+				Vehicle Rocket(when activated)
 *	INSERT				Toggle godmode
+*   DELETE				Flips vehicle
 *
 * AirBreak Controls:
-*	DEL				Toggle AirBrk
-*	NUM8			Move forward
-*	NUM2			Move backward
-*	NUM7			Move up
-*	NUM9			Move down
-*	NUM4			Turn left
-*	NUM6			Turn right
-*	NUM5			(Un)freeze position
+*	RSHIFT			Toggle AirBrk
+*	W				Move forward
+*	A				Move left
+*	S				Move backward
+*	D				Move right
+*	ARROW UP		Move up
+*	ARROW DOWN		Move down
 */
 
 #include <string>
@@ -34,7 +35,7 @@
 #include "script.h"
 #include "keyboard.h"
 
-#define MOD_VERSION	"GTA V: FX TRAINER v0.2.1"
+#define MOD_VERSION	"GTA V: FX TRAINER v0.3"
 
 // double <-> float conversions
 #pragma warning(disable : 4244 4305)
@@ -48,11 +49,14 @@ const float MENU_AXIS_X = 529.0;
 // amount of money to give to player
 int g_nMoneyValue = 1000000;
 
+// air break speed
+int g_nAirbrkMultiplier = 3;
+
 // is footer hud shown
 bool g_bIsHudVisible = true;
 
-// is airbreak position frozen
-bool g_bIsEntityPosFrozen = false;
+// tickcount time when last pressed rshift key
+DWORD g_nLastTimePressedKey = 0;
 
 void draw_rect(float A_0, float A_1, float A_2, float A_3, int A_4, int A_5, int A_6, int A_7)
 {
@@ -416,6 +420,7 @@ void update_features()
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(playerPed);
 
+	// toggle godmode
 	if (IsKeyJustUp(VK_INSERT))
 	{
 		if (!featurePlayerInvincible || !featureVehInvincible)
@@ -434,22 +439,42 @@ void update_features()
 		}
 	}
 
-	if (IsKeyJustUp(VK_DELETE))
+	// flip vehicle
+	if (IsKeyJustUp(VK_DELETE) && (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)))
 	{
-		if (!featurePlayerAirBrk)
-			featurePlayerAirBrk = true;
-		else
-		{
-			featurePlayerAirBrk = false;
-			g_bIsEntityPosFrozen = false;
+		Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+		ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh));
+	}
 
+	// toggle airbrk
+	if ((GetKeyState(VK_RSHIFT) & 0x8000) && g_nLastTimePressedKey < GetTickCount())
+	{
+		g_nLastTimePressedKey = GetTickCount() + 200;
+		if (!featurePlayerAirBrk)
+		{
+			featurePlayerAirBrk = true;
 			if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
 			{
 				Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-				ENTITY::FREEZE_ENTITY_POSITION(veh, g_bIsEntityPosFrozen);
+				ENTITY::FREEZE_ENTITY_POSITION(veh, true);
 			}
 			else
-				ENTITY::FREEZE_ENTITY_POSITION(playerPed, g_bIsEntityPosFrozen);
+			{
+				ENTITY::FREEZE_ENTITY_POSITION(playerPed, true);
+			}
+		}
+		else
+		{
+			featurePlayerAirBrk = false;
+			if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
+			{
+				Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+				ENTITY::FREEZE_ENTITY_POSITION(veh, false);
+			}
+			else
+			{
+				ENTITY::FREEZE_ENTITY_POSITION(playerPed, false);
+			}
 		}
 	}
 
@@ -615,38 +640,23 @@ void update_features()
 	// player air break
 	if (featurePlayerAirBrk && bPlayerExists)
 	{
-		bool bForward = IsKeyDown(VK_NUMPAD8);
-		bool bBackward = IsKeyDown(VK_NUMPAD2);
-		bool bUp = IsKeyDown(VK_NUMPAD7);
-		bool bDown = IsKeyDown(VK_NUMPAD9);
-		bool bLeft = IsKeyDown(VK_NUMPAD4);
-		bool bRight = IsKeyDown(VK_NUMPAD6);
-
-		int multiplier = 3;
-
 		if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
 		{
 			Vector3 playerForwardPos = ENTITY::GET_ENTITY_FORWARD_VECTOR(playerPed);
 			Vector3 playerPos = ENTITY::GET_ENTITY_COORDS(playerPed, true);
 
-			if (bForward)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x + (playerForwardPos.x * multiplier), playerPos.y + (playerForwardPos.y * multiplier), playerPos.z, 0, 0, 0);
-			if (bBackward)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x - (playerForwardPos.x * multiplier), playerPos.y - (playerForwardPos.y * multiplier), playerPos.z, 0, 0, 0);
-			if (bUp)
+			if (GetKeyState(0x57) & 0x8000)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x + (playerForwardPos.x * g_nAirbrkMultiplier), playerPos.y + (playerForwardPos.y * g_nAirbrkMultiplier), playerPos.z, 0, 0, 0);
+			if (GetKeyState(0x53) & 0x8000)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x - (playerForwardPos.x * g_nAirbrkMultiplier), playerPos.y - (playerForwardPos.y * g_nAirbrkMultiplier), playerPos.z, 0, 0, 0);
+			if (GetKeyState(0x26) & 0x8000)
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x, playerPos.y, playerPos.z + 1.0, 0, 0, 0);
-			if (bDown)
+			if (GetKeyState(0x28) & 0x8000)
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x, playerPos.y, playerPos.z - 1.0, 0, 0, 0);
-			if (bLeft)
+			if (GetKeyState(0x41) & 0x8000)
 				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) + 3.0);
-			if (bRight)
+			if (GetKeyState(0x44) & 0x8000)
 				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) - 3.0);
-
-			if (IsKeyJustUp(VK_NUMPAD5))
-			{
-				g_bIsEntityPosFrozen = (g_bIsEntityPosFrozen) ? false : true;
-				ENTITY::FREEZE_ENTITY_POSITION(playerPed, g_bIsEntityPosFrozen);
-			}
 		}
 		else
 		{
@@ -654,24 +664,18 @@ void update_features()
 			Vector3 vehForwardPos = ENTITY::GET_ENTITY_FORWARD_VECTOR(veh);
 			Vector3 vehPos = ENTITY::GET_ENTITY_COORDS(veh, true);
 
-			if (bForward)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x + (vehForwardPos.x * multiplier), vehPos.y + (vehForwardPos.y * multiplier), vehPos.z, 0, 0, 0);
-			if (bBackward)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x - (vehForwardPos.x * multiplier), vehPos.y - (vehForwardPos.y * multiplier), vehPos.z, 0, 0, 0);
-			if (bUp)
+			if (GetKeyState(0x57) & 0x8000)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x + (vehForwardPos.x * g_nAirbrkMultiplier), vehPos.y + (vehForwardPos.y * g_nAirbrkMultiplier), vehPos.z, 0, 0, 0);
+			if (GetKeyState(0x53) & 0x8000)
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x - (vehForwardPos.x * g_nAirbrkMultiplier), vehPos.y - (vehForwardPos.y * g_nAirbrkMultiplier), vehPos.z, 0, 0, 0);
+			if (GetKeyState(0x26) & 0x8000)
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x, vehPos.y, vehPos.z + 1.0, 0, 0, 0);
-			if (bDown)
+			if (GetKeyState(0x28) & 0x8000)
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x, vehPos.y, vehPos.z - 1.0, 0, 0, 0);
-			if (bLeft)
+			if (GetKeyState(0x41) & 0x8000)
 				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) + 3.0);
-			if (bRight)
+			if (GetKeyState(0x44) & 0x8000)
 				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) - 3.0);
-
-			if (IsKeyJustUp(VK_NUMPAD5))
-			{
-				g_bIsEntityPosFrozen = (g_bIsEntityPosFrozen) ? false : true;
-				ENTITY::FREEZE_ENTITY_POSITION(veh, g_bIsEntityPosFrozen);
-			}
 		}
 	}
 
@@ -1286,23 +1290,24 @@ void process_player_menu()
 		LPCSTR		text;
 		bool		*pState;
 		bool		*pUpdated;
+		int			value;
 	} lines[lineCount] = {
-		{ "1.  Skin changer", NULL, NULL },
-		{ "2.  Teleport", NULL, NULL },
-		{ "3.  Fix player", NULL, NULL },
-		{ "4.  Reset skin", NULL, NULL },
-		{ "5.  Add Money", NULL, NULL },
-		{ "6.  Wanted up", NULL, NULL },
-		{ "7.  Wanted down", NULL, NULL },
-		{ "8.  Never wanted", &featurePlayerNeverWanted, NULL },
-		{ "9.  Invincible", &featurePlayerInvincible, &featurePlayerInvincibleUpdated },
-		{ "10. Police ignored", &featurePlayerIgnored, &featurePlayerIgnoredUpdated },
-		{ "11. Unlim. ability", &featurePlayerUnlimitedAbility, NULL },
-		{ "12. Noiseless", &featurePlayerNoNoise, &featurePlayerNoNoiseUpdated },
-		{ "13. Fast swm", &featurePlayerFastSwim, &featurePlayerFastSwimUpdated },
-		{ "14. Fast run", &featurePlayerFastRun, &featurePlayerFastRunUpdated },
-		{ "15. Super jump", &featurePlayerSuperJump, NULL },
-		{ "16. Air Break", &featurePlayerAirBrk, NULL }
+		{ "1.  Skin changer", NULL, NULL, NULL },
+		{ "2.  Teleport", NULL, NULL, NULL },
+		{ "3.  Fix player", NULL, NULL, NULL },
+		{ "4.  Reset skin", NULL, NULL, NULL },
+		{ "5.  Add Money", NULL, NULL, g_nMoneyValue },
+		{ "6.  Wanted up", NULL, NULL, NULL },
+		{ "7.  Wanted down", NULL, NULL, NULL },
+		{ "8.  Never wanted", &featurePlayerNeverWanted, NULL, NULL },
+		{ "9.  Invincible", &featurePlayerInvincible, &featurePlayerInvincibleUpdated, NULL },
+		{ "10. Police ignored", &featurePlayerIgnored, &featurePlayerIgnoredUpdated, NULL },
+		{ "11. Unlim. ability", &featurePlayerUnlimitedAbility, NULL, NULL },
+		{ "12. Noiseless", &featurePlayerNoNoise, &featurePlayerNoNoiseUpdated, NULL },
+		{ "13. Fast swm", &featurePlayerFastSwim, &featurePlayerFastSwimUpdated, NULL },
+		{ "14. Fast run", &featurePlayerFastRun, &featurePlayerFastRunUpdated, NULL },
+		{ "15. Super jump", &featurePlayerSuperJump, NULL, NULL },
+		{ "16. Air Break", &featurePlayerAirBrk, NULL, g_nAirbrkMultiplier }
 	};
 
 	DWORD waitTime = 150;
@@ -1322,8 +1327,8 @@ void process_player_menu()
 			for (int i = currentMinIndexPlayer; i < currentMaxIndexPlayer; i++)
 			{
 				if (i != activeLineIndexPlayer)
-					if (i == 4)
-						draw_menu_line(line_with_value(lines[i].text, g_nMoneyValue), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
+					if (i == 4 || i == 15)
+						draw_menu_line(line_with_value(lines[i].text, lines[i].value), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
 					else
 						draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
 				else
@@ -1331,10 +1336,10 @@ void process_player_menu()
 
 				row++;
 			}
-			if (activeLineIndexPlayer != 4)
-				draw_menu_line(line_as_str(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
+			if (activeLineIndexPlayer == 4  || activeLineIndexPlayer == 15)
+				draw_menu_line(line_with_value(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].value), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 			else
-				draw_menu_line(line_with_value(lines[activeLineIndexPlayer].text, g_nMoneyValue), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
+				draw_menu_line(line_as_str(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1472,6 +1477,14 @@ void process_player_menu()
 				g_nMoneyValue -= 100000;
 				waitTime = 150;
 			}
+			else if (activeLineIndexPlayer == 15)
+			{
+				menu_beep();
+				g_nAirbrkMultiplier--;
+				if (g_nAirbrkMultiplier < 1)
+					g_nAirbrkMultiplier = 1;
+				waitTime = 150;
+			}
 		}
 		else if (bRight)
 		{
@@ -1479,6 +1492,12 @@ void process_player_menu()
 			{
 				menu_beep();
 				g_nMoneyValue += 100000;
+				waitTime = 150;
+			}
+			else if (activeLineIndexPlayer == 15)
+			{
+				menu_beep();
+				g_nAirbrkMultiplier++;
 				waitTime = 150;
 			}
 		}
@@ -2452,6 +2471,11 @@ void main()
 		{
 			menu_beep();
 			process_main_menu();
+		}
+		if (IsKeyJustUp(VK_F12))
+		{
+			menu_beep();
+			g_bIsHudVisible = (g_bIsHudVisible) ? false : true;
 		}
 
 		update_features();
