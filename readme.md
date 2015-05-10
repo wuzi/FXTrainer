@@ -10,22 +10,23 @@ Picture
 Controls
 =====================
 *	**F11**				Activate
+*	**F12** Toggle trainer HUD
 *	**NUM2/8/4/6**			Navigate
 *	**NUM0/BACKSPACE/F4**		Back
 *	**NUM5**			Select
 *	**NUM9/3**				Vehicle Boost (when activated)
 *	**NUM+**			Vehicle Rocket(when activated)
 *	**INSERT**				Toggle godmode
+*	**DELETE** Flip vehicle
 
 **AirBreak Controls:**
-*	**DEL**				Toggle AirBrk
-*	**NUM8**			Move forward
-*	**NUM2**			Move backward
-*	**NUM7**			Move up
-*	**NUM9**			Move down
-*	**NUM4**			Turn left
-*	**NUM6**			Turn right
-*	**NUM5**			(Un)freeze position
+*	**RSHIFT**				Toggle AirBrk
+*	**W**				Move forward
+*	**A**				Move left
+*	**S**				Move backward
+*	**D**				Move right
+*	**ARROW UP**		Move up
+*	**ARROW DOWN**		Move down
 
 Installation
 =====================
