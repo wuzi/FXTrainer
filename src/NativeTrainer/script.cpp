@@ -3,7 +3,7 @@
 *
 * A multi-purpose cheat tool for Grand Theft Auto V.
 * It is an edit of Native Trainer made by Alexander Blade.
-* It has New UI and features.
+* It has new UI and features.
 *
 * Big thanks to:
 *	Alexander Blade (Script Hook V & Native Trainer)
@@ -34,7 +34,7 @@
 #include "script.h"
 #include "keyboard.h"
 
-#define MOD_VERSION	"GTA V: FX TRAINER v0.2"
+#define MOD_VERSION	"GTA V: FX TRAINER v0.2.1"
 
 // double <-> float conversions
 #pragma warning(disable : 4244 4305)
@@ -793,32 +793,25 @@ void update_features()
 		draw_text(text, 8.0, 697.0, 995.0, 9.0, text_col, 0, 0.35);
 
 		// info
-		draw_text("[      ] [         ] [             ] [                    ] [               ]", 8.0, 696.0, 465.0, 9.0, text_col, 0, 0.35);
+		draw_text("[", 8.0, 696.0, 465.0, 9.0, text_col, 0, 0.35);
+		draw_text("INV", 8.0, 696.0, 470.0, 9.0, (featurePlayerInvincible) ? text_col_active : text_col, 0, 0.35);
+		draw_text("]", 8.0, 696.0, 493.0, 9.0, text_col, 0, 0.35);
 
-		if (featurePlayerInvincible)
-			draw_text("INV", 8.0, 696.0, 470.0, 9.0, text_col_active, 0, 0.35);
-		else
-			draw_text("INV", 8.0, 696.0, 470.0, 9.0, text_col, 0, 0.35);
+		draw_text("[", 8.0, 696.0, 502.0, 9.0, text_col, 0, 0.35);
+		draw_text("V-INV", 8.0, 696.0, 507.0, 9.0, (featureVehInvincible) ? text_col_active : text_col, 0, 0.35);
+		draw_text("]", 8.0, 696.0, 545.0, 9.0, text_col, 0, 0.35);
 
-		if (featureVehInvincible)
-			draw_text("V-INV", 8.0, 696.0, 507.0, 9.0, text_col_active, 0, 0.35);
-		else
-			draw_text("V-INV", 8.0, 696.0, 507.0, 9.0, text_col, 0, 0.35);
+		draw_text("[", 8.0, 696.0, 554.0, 9.0, text_col, 0, 0.35);
+		draw_text("BOOST", 8.0, 696.0, 559.0, 9.0, (featureVehSpeedBoost) ? text_col_active : text_col, 0, 0.35);
+		draw_text("]", 8.0, 696.0, 607.0, 9.0, text_col, 0, 0.35);
 
-		if (featureVehSpeedBoost)
-			draw_text("BOOST", 8.0, 696.0, 560.0, 9.0, text_col_active, 0, 0.35);
-		else
-			draw_text("BOOST", 8.0, 696.0, 560.0, 9.0, text_col, 0, 0.35);
+		draw_text("[", 8.0, 696.0, 616.0, 9.0, text_col, 0, 0.35);
+		draw_text("AIR BREAK", 8.0, 696.0, 621.0, 9.0, (featurePlayerAirBrk) ? text_col_active : text_col, 0, 0.35);
+		draw_text("]", 8.0, 696.0, 692.0, 9.0, text_col, 0, 0.35);
 
-		if (featurePlayerAirBrk)
-			draw_text("AIR BREAK", 8.0, 696.0, 625.9, 9.0, text_col_active, 0, 0.35);
-		else
-			draw_text("AIR BREAK", 8.0, 696.0, 625.9, 9.0, text_col, 0, 0.35);
-
-		if (featureWorldMoonGravity)
-			draw_text("GRAVITY", 8.0, 696.0, 719.0, 9.0, text_col_active, 0, 0.35);
-		else
-			draw_text("GRAVITY", 8.0, 696.0, 719.0, 9.0, text_col, 0, 0.35);
+		draw_text("[", 8.0, 696.0, 701.0, 9.0, text_col, 0, 0.35);
+		draw_text("GRAVITY", 8.0, 696.0, 706.0, 9.0, (featureWorldMoonGravity) ? text_col_active : text_col, 0, 0.35);
+		draw_text("]", 8.0, 696.0, 764.0, 9.0, text_col, 0, 0.35);
 	}
 }
 
