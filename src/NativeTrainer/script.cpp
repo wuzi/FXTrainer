@@ -36,7 +36,7 @@
 #include "script.h"
 #include "keyboard.h"
 
-#define MOD_VERSION	"GTA V: FX TRAINER v0.3.2"
+#define MOD_VERSION	"GTA V: FX TRAINER v0.3.3"
 
 // double <-> float conversions
 #pragma warning(disable : 4244 4305)
@@ -640,65 +640,42 @@ void update_features()
 	// player's vehicle boost
 	if (featureVehSpeedBoost && bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
 	{
-		Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-		DWORD model = ENTITY::GET_ENTITY_MODEL(veh);
-
 		bool bUp = IsKeyDown(VK_NUMPAD9);
 		bool bDown = IsKeyDown(VK_NUMPAD3);
 
 		if (bUp || bDown)
 		{
-			float speed = ENTITY::GET_ENTITY_SPEED(veh);
+			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+			DWORD model = ENTITY::GET_ENTITY_MODEL(veh);
+			Vector3 velocity = ENTITY::GET_ENTITY_VELOCITY(veh);
+
 			if (bUp)
-			{
-				speed += speed * 0.05f;
-				VEHICLE::SET_VEHICLE_FORWARD_SPEED(veh, speed);
-			}
-			else if (ENTITY::IS_ENTITY_IN_AIR(veh) || speed > 5.0)
-				VEHICLE::SET_VEHICLE_FORWARD_SPEED(veh, 0.0);
+				ENTITY::SET_ENTITY_VELOCITY(veh, velocity.x * 1.3, velocity.y * 1.3, velocity.z);
+			else if (bDown)
+				ENTITY::SET_ENTITY_VELOCITY(veh, 0.0, 0.0, 0.0);
 		}
 	}
 
 	// player air break
 	if (featurePlayerAirBrk && bPlayerExists)
 	{
-		if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
-		{
-			Vector3 playerForwardPos = ENTITY::GET_ENTITY_FORWARD_VECTOR(playerPed);
-			Vector3 playerPos = ENTITY::GET_ENTITY_COORDS(playerPed, true);
+		// entity forward pos
+		Vector3 entityFPos = (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) ? ENTITY::GET_ENTITY_FORWARD_VECTOR(playerPed) : ENTITY::GET_ENTITY_FORWARD_VECTOR(PED::GET_VEHICLE_PED_IS_USING(playerPed));
+		// entity current pos
+		Vector3 entityCPos = (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) ? ENTITY::GET_ENTITY_COORDS(playerPed, true) : ENTITY::GET_ENTITY_COORDS(PED::GET_VEHICLE_PED_IS_USING(playerPed), true);
 
-			if (GetKeyState(0x57) & 0x8000)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x + (playerForwardPos.x * g_nAirbrkMultiplier), playerPos.y + (playerForwardPos.y * g_nAirbrkMultiplier), playerPos.z, 0, 0, 0);
-			if (GetKeyState(0x53) & 0x8000)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x - (playerForwardPos.x * g_nAirbrkMultiplier), playerPos.y - (playerForwardPos.y * g_nAirbrkMultiplier), playerPos.z, 0, 0, 0);
-			if (GetKeyState(0x26) & 0x8000)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x, playerPos.y, playerPos.z + 1.0, 0, 0, 0);
-			if (GetKeyState(0x28) & 0x8000)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, playerPos.x, playerPos.y, playerPos.z - 1.0, 0, 0, 0);
-			if (GetKeyState(0x41) & 0x8000)
-				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) + 3.0);
-			if (GetKeyState(0x44) & 0x8000)
-				ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) - 3.0);
-		}
-		else
-		{
-			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-			Vector3 vehForwardPos = ENTITY::GET_ENTITY_FORWARD_VECTOR(veh);
-			Vector3 vehPos = ENTITY::GET_ENTITY_COORDS(veh, true);
-
-			if (GetKeyState(0x57) & 0x8000)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x + (vehForwardPos.x * g_nAirbrkMultiplier), vehPos.y + (vehForwardPos.y * g_nAirbrkMultiplier), vehPos.z, 0, 0, 0);
-			if (GetKeyState(0x53) & 0x8000)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x - (vehForwardPos.x * g_nAirbrkMultiplier), vehPos.y - (vehForwardPos.y * g_nAirbrkMultiplier), vehPos.z, 0, 0, 0);
-			if (GetKeyState(0x26) & 0x8000)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x, vehPos.y, vehPos.z + 1.0, 0, 0, 0);
-			if (GetKeyState(0x28) & 0x8000)
-				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(veh, vehPos.x, vehPos.y, vehPos.z - 1.0, 0, 0, 0);
-			if (GetKeyState(0x41) & 0x8000)
-				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) + 3.0);
-			if (GetKeyState(0x44) & 0x8000)
-				ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh) - 3.0);
-		}
+		if (GetKeyState(0x57) & 0x8000)
+			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, entityCPos.x + (entityFPos.x * g_nAirbrkMultiplier), entityCPos.y + (entityFPos.y * g_nAirbrkMultiplier), entityCPos.z, 0, 0, 0);
+		if (GetKeyState(0x53) & 0x8000)
+			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, entityCPos.x - (entityFPos.x * g_nAirbrkMultiplier), entityCPos.y - (entityFPos.y * g_nAirbrkMultiplier), entityCPos.z, 0, 0, 0);
+		if (GetKeyState(0x26) & 0x8000)
+			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, entityCPos.x, entityCPos.y, entityCPos.z + 1.0, 0, 0, 0);
+		if (GetKeyState(0x28) & 0x8000)
+			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, entityCPos.x, entityCPos.y, entityCPos.z - 1.0, 0, 0, 0);
+		if (GetKeyState(0x41) & 0x8000)
+			ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) + 3.0);
+		if (GetKeyState(0x44) & 0x8000)
+			ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) - 3.0);
 	}
 
 	// time pause

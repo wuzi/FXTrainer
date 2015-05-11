@@ -25,3 +25,6 @@ Changed size of menu
 0.3.2
 Flip vehicle doesn't stop vehicle anymore.
 Backspace turns vehicle 180º.
+
+0.3.3
+Boost now works on fiveM
