@@ -5,7 +5,7 @@ A multi-purpose cheat tool for Grand Theft Auto V and fiveM.
 
 Picture
 =====================
-![](http://i.imgur.com/YMmgzGBl.jpg)
+![](http://i.imgur.com/J59OvxCl.jpg)
 
 Controls
 =====================
