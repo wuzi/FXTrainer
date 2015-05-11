@@ -12,12 +12,13 @@ Controls
 *	**F11**				Activate
 *	**F12** Toggle trainer HUD
 *	**NUM2/8/4/6**			Navigate
-*	**NUM0/BACKSPACE/F4**		Back
+*	**NUM0/F4**		Back
 *	**NUM5**			Select
 *	**NUM9/3**				Vehicle Boost (when activated)
 *	**NUM+**			Vehicle Rocket(when activated)
 *	**INSERT**				Toggle godmode
 *	**DELETE** Flip vehicle
+*	**BACKSPACE** Turns vehicle 180º
 
 **AirBreak Controls:**
 *	**RSHIFT**				Toggle AirBrk
