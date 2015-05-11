@@ -35,16 +35,18 @@
 #include "script.h"
 #include "keyboard.h"
 
-#define MOD_VERSION	"GTA V: FX TRAINER v0.3"
+#define MOD_VERSION	"GTA V: FX TRAINER v0.3.1"
 
 // double <-> float conversions
 #pragma warning(disable : 4244 4305)
 
 // menu position
-const float MENU_WIDTH = 339.0;
-const float MENU_HEIGHT = 9.0;
-const float MENU_AXIS_Y = 445.0;
-const float MENU_AXIS_X = 529.0;
+const float BG_HEIGHT = 127.0;
+const float BG_AXIS_Y = 443.0;
+const float MENU_WIDTH = 470.0;// old: 339.0
+const float MENU_HEIGHT = 9.7;
+const float MENU_AXIS_Y = 444.2;
+const float MENU_AXIS_X = 463.5;// old: 529.0
 
 // amount of money to give to player
 int g_nMoneyValue = 1000000;
@@ -980,7 +982,7 @@ bool process_skinchanger_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 235.0, 334.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, (BG_AXIS_Y + 108), (BG_AXIS_Y - 108.0), MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			char caption[32];
@@ -1118,7 +1120,7 @@ bool process_teleport_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
@@ -1126,13 +1128,13 @@ bool process_teleport_menu()
 			for (int i = currentMinIndexTeleport; i < currentMaxIndexTeleport; i++)
 			{
 				if (i != teleportActiveLineIndex)
-					draw_menu_line(lines[i].text, MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
+					draw_menu_line(lines[i].text, MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 7.0, false, false);
 				else
 					rowActive = row;
 
 				row++;
 			}
-			draw_menu_line(lines[teleportActiveLineIndex].text, MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
+			draw_menu_line(lines[teleportActiveLineIndex].text, MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1265,13 +1267,13 @@ bool process_teleport_menu()
 
 std::string line_as_str(std::string text, bool *pState)
 {
-	while (text.size() < 18) text += " ";
+	while (text.size() < 36) text += " ";
 	return text + (pState ? (*pState ? " [ON]" : " [OFF]") : "");
 }
 
 std::string line_with_value(std::string text, int value)
 {
-	while (text.size() < 18) text += " ";
+	while (text.size() < 36) text += " ";
 	return text + std::to_string(value);
 }
 
@@ -1290,24 +1292,23 @@ void process_player_menu()
 		LPCSTR		text;
 		bool		*pState;
 		bool		*pUpdated;
-		int			value;
 	} lines[lineCount] = {
-		{ "1.  Skin changer", NULL, NULL, NULL },
-		{ "2.  Teleport", NULL, NULL, NULL },
-		{ "3.  Fix player", NULL, NULL, NULL },
-		{ "4.  Reset skin", NULL, NULL, NULL },
-		{ "5.  Add Money", NULL, NULL, g_nMoneyValue },
-		{ "6.  Wanted up", NULL, NULL, NULL },
-		{ "7.  Wanted down", NULL, NULL, NULL },
-		{ "8.  Never wanted", &featurePlayerNeverWanted, NULL, NULL },
-		{ "9.  Invincible", &featurePlayerInvincible, &featurePlayerInvincibleUpdated, NULL },
-		{ "10. Police ignored", &featurePlayerIgnored, &featurePlayerIgnoredUpdated, NULL },
-		{ "11. Unlim. ability", &featurePlayerUnlimitedAbility, NULL, NULL },
-		{ "12. Noiseless", &featurePlayerNoNoise, &featurePlayerNoNoiseUpdated, NULL },
-		{ "13. Fast swm", &featurePlayerFastSwim, &featurePlayerFastSwimUpdated, NULL },
-		{ "14. Fast run", &featurePlayerFastRun, &featurePlayerFastRunUpdated, NULL },
-		{ "15. Super jump", &featurePlayerSuperJump, NULL, NULL },
-		{ "16. Air Break", &featurePlayerAirBrk, NULL, g_nAirbrkMultiplier }
+		{ "1.  Skin changer", NULL, NULL },
+		{ "2.  Teleport", NULL, NULL },
+		{ "3.  Fix player", NULL, NULL },
+		{ "4.  Reset skin", NULL, NULL },
+		{ "5.  Add Money", NULL, NULL },
+		{ "6.  Wanted up", NULL, NULL },
+		{ "7.  Wanted down", NULL, NULL },
+		{ "8.  Never wanted", &featurePlayerNeverWanted, NULL },
+		{ "9.  Invincible", &featurePlayerInvincible, &featurePlayerInvincibleUpdated },
+		{ "10. Police ignored", &featurePlayerIgnored, &featurePlayerIgnoredUpdated },
+		{ "11. Unlim. ability", &featurePlayerUnlimitedAbility, NULL },
+		{ "12. Noiseless", &featurePlayerNoNoise, &featurePlayerNoNoiseUpdated },
+		{ "13. Fast swm", &featurePlayerFastSwim, &featurePlayerFastSwimUpdated },
+		{ "14. Fast run", &featurePlayerFastRun, &featurePlayerFastRunUpdated },
+		{ "15. Super jump", &featurePlayerSuperJump, NULL },
+		{ "16. Air Break", &featurePlayerAirBrk, NULL }
 	};
 
 	DWORD waitTime = 150;
@@ -1315,11 +1316,13 @@ void process_player_menu()
 	{
 		// timed menu draw, used for pause after active line switch
 		DWORD maxTickCount = GetTickCount() + waitTime;
+
+		// update texts
 		do
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
@@ -1327,19 +1330,23 @@ void process_player_menu()
 			for (int i = currentMinIndexPlayer; i < currentMaxIndexPlayer; i++)
 			{
 				if (i != activeLineIndexPlayer)
-					if (i == 4 || i == 15)
-						draw_menu_line(line_with_value(lines[i].text, lines[i].value), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
+					if (i == 4)
+						draw_menu_line(line_with_value(lines[i].text, g_nMoneyValue), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 7.0, false, false);
+					else if (i == 15)
+						draw_menu_line(line_with_value(lines[i].text, g_nAirbrkMultiplier), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 7.0, false, false);
 					else
-						draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
+						draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 7.0, false, false);
 				else
 					rowActive = row;
 
 				row++;
 			}
-			if (activeLineIndexPlayer == 4  || activeLineIndexPlayer == 15)
-				draw_menu_line(line_with_value(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].value), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
+			if (activeLineIndexPlayer == 4)
+				draw_menu_line(line_with_value(lines[activeLineIndexPlayer].text, g_nMoneyValue), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
+			else if (activeLineIndexPlayer == 15)
+				draw_menu_line(line_with_value(lines[activeLineIndexPlayer].text, g_nAirbrkMultiplier), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 			else
-				draw_menu_line(line_as_str(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
+				draw_menu_line(line_as_str(lines[activeLineIndexPlayer].text, lines[activeLineIndexPlayer].pState), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1548,14 +1555,14 @@ void process_weapon_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexWeapon)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexWeapon].text, lines[activeLineIndexWeapon].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexWeapon * 36.0, MENU_AXIS_X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 7.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexWeapon].text, lines[activeLineIndexWeapon].pState), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + activeLineIndexWeapon * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1669,7 +1676,7 @@ bool process_carspawn_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 235.0, 334.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, (BG_AXIS_Y + 108), (BG_AXIS_Y - 108.0), MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			char caption[32];
@@ -1793,14 +1800,14 @@ void process_veh_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexVeh)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexVeh].text, lines[activeLineIndexVeh].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexVeh * 36.0, MENU_AXIS_X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 7.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexVeh].text, lines[activeLineIndexVeh].pState), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + activeLineIndexVeh * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -1910,14 +1917,14 @@ void process_world_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexWorld)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexWorld].text, lines[activeLineIndexWorld].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexWorld * 36.0, MENU_AXIS_X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 7.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexWorld].text, lines[activeLineIndexWorld].pState), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + activeLineIndexWorld * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -2008,14 +2015,14 @@ void process_time_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexTime)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexTime].text, lines[activeLineIndexTime].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexTime * 36.0, MENU_AXIS_X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 7.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexTime].text, lines[activeLineIndexTime].pState), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + activeLineIndexTime * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -2118,7 +2125,7 @@ void process_weather_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
@@ -2126,13 +2133,13 @@ void process_weather_menu()
 			for (int i = currentMinIndexWeather; i < currentMaxIndexWeather; i++)
 			{
 				if (i != activeLineIndexWeather)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 9.0, false, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + row * 36.0, MENU_AXIS_X, 7.0, false, false);
 				else
 					rowActive = row;
 
 				row++;
 			}
-			draw_menu_line(line_as_str(lines[activeLineIndexWeather].text, lines[activeLineIndexWeather].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexWeather].text, lines[activeLineIndexWeather].pState), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + rowActive * 36.0, MENU_AXIS_X, 7.0, true, false);
 			update_features();
 			WAIT(0);
 		} while (GetTickCount() < maxTickCount);
@@ -2243,14 +2250,14 @@ void process_misc_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexMisc)
-					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
-			draw_menu_line(line_as_str(lines[activeLineIndexMisc].text, lines[activeLineIndexMisc].pState), MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexMisc * 36.0, MENU_AXIS_X, 7.0, true, false);
+					draw_menu_line(line_as_str(lines[i].text, lines[i].pState), MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 7.0, false, false);
+			draw_menu_line(line_as_str(lines[activeLineIndexMisc].text, lines[activeLineIndexMisc].pState), MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + activeLineIndexMisc * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
@@ -2337,14 +2344,14 @@ void process_main_menu()
 		{
 			// draw background
 			int rect_col[4] = { 0, 0, 0, 140 };
-			draw_menu_box(341.0, 127.0, 442.0, 528.0, 9.0, rect_col);
+			draw_menu_box(MENU_WIDTH, BG_HEIGHT, BG_AXIS_Y, MENU_AXIS_X, 7.0, rect_col);
 
 			// draw menu
 			draw_menu_line(caption, MENU_WIDTH, MENU_HEIGHT + 5.0, MENU_AXIS_Y - 54.5, MENU_AXIS_X, 5.0, false, true);
 			for (int i = 0; i < lineCount; i++)
 				if (i != activeLineIndexMain)
-					draw_menu_line(lineCaption[i], MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 9.0, false, false);
-			draw_menu_line(lineCaption[activeLineIndexMain], MENU_WIDTH + 1.0, MENU_HEIGHT + 2.0, (MENU_AXIS_Y - 4.0) + activeLineIndexMain * 36.0, MENU_AXIS_X, 7.0, true, false);
+					draw_menu_line(lineCaption[i], MENU_WIDTH, MENU_HEIGHT, MENU_AXIS_Y + i * 36.0, MENU_AXIS_X, 7.0, false, false);
+			draw_menu_line(lineCaption[activeLineIndexMain], MENU_WIDTH, MENU_HEIGHT, (MENU_AXIS_Y - 1.2) + activeLineIndexMain * 36.0, MENU_AXIS_X, 7.0, true, false);
 
 			update_features();
 			WAIT(0);
