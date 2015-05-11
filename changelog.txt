@@ -1,0 +1,27 @@
+ChangeLOG FX Trainer
+
+0.1
+First Release.
+
+0.2
+Option to hide trainer menu.
+Simple airbreak added.
+
+0.2.1
+Fixed HUD position when in windowed mode.
+
+0.3
+Possibility to change airbreak speed.
+Airbreak toggle key changed to right shift.
+Airbreak control keys updated.
+F12 now hides trainer hud.
+Delete key flips vehicle.
+
+0.3.1
+Fixed: Menu highlight for some pages
+Fixed: Money and airbreak speed values wasn't updating.
+Changed size of menu
+
+0.3.2
+Flip vehicle doesn't stop vehicle anymore.
+Backspace turns vehicle 180º.

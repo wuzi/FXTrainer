@@ -13,12 +13,13 @@
 *	F11					Activate
 *	F12					Toggle trainer HUD
 *	NUM2/8/4/6			Navigate
-*	NUM0/BACKSPACE/F4	Back
+*	NUM0/F4				Back
 *	NUM5				Select
 *	NUM9/3				Vehicle Boost (when activated)
 *	NUM+				Vehicle Rocket(when activated)
 *	INSERT				Toggle godmode
 *   DELETE				Flips vehicle
+*	BACKSPACE			Turns vehicle 180º
 *
 * AirBreak Controls:
 *	RSHIFT			Toggle AirBrk
@@ -35,7 +36,7 @@
 #include "script.h"
 #include "keyboard.h"
 
-#define MOD_VERSION	"GTA V: FX TRAINER v0.3.1"
+#define MOD_VERSION	"GTA V: FX TRAINER v0.3.2"
 
 // double <-> float conversions
 #pragma warning(disable : 4244 4305)
@@ -233,7 +234,7 @@ bool trainer_switch_pressed()
 void get_button_state(bool *a, bool *b, bool *up, bool *down, bool *l, bool *r)
 {
 	if (a) *a = IsKeyDown(VK_NUMPAD5);
-	if (b) *b = IsKeyDown(VK_NUMPAD0) || trainer_switch_pressed() || IsKeyDown(VK_BACK);
+	if (b) *b = IsKeyDown(VK_NUMPAD0) || trainer_switch_pressed();
 	if (up) *up = IsKeyDown(VK_NUMPAD8);
 	if (down) *down = IsKeyDown(VK_NUMPAD2);
 	if (r) *r = IsKeyDown(VK_NUMPAD6);
@@ -445,7 +446,26 @@ void update_features()
 	if (IsKeyJustUp(VK_DELETE) && (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)))
 	{
 		Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+		Vector3 velocity = ENTITY::GET_ENTITY_VELOCITY(veh);
 		ENTITY::SET_ENTITY_HEADING(veh, ENTITY::GET_ENTITY_HEADING(veh));
+		VEHICLE::SET_VEHICLE_ENGINE_ON(veh, true, true);
+		ENTITY::SET_ENTITY_VELOCITY(veh, velocity.x, velocity.y, velocity.z);
+	}
+
+	// turn vehicle
+	if (IsKeyJustUp(VK_BACK) && (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)))
+	{
+		Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+		Vector3 velocity = ENTITY::GET_ENTITY_VELOCITY(veh);
+		float heading = ENTITY::GET_ENTITY_HEADING(veh);
+
+		heading += 180.0;
+		if (heading > 360)
+			heading -= 360;
+
+		ENTITY::SET_ENTITY_HEADING(veh, heading);
+		VEHICLE::SET_VEHICLE_ENGINE_ON(veh, true, true);
+		ENTITY::SET_ENTITY_VELOCITY(veh, velocity.x * -1, velocity.y * -1, velocity.z);
 	}
 
 	// toggle airbrk
