@@ -36,7 +36,7 @@
 #include "script.h"
 #include "keyboard.h"
 
-#define MOD_VERSION	"GTA V: FX TRAINER v0.3.3"
+#define MOD_VERSION	"GTA V: FX TRAINER v0.3.3b"
 
 // double <-> float conversions
 #pragma warning(disable : 4244 4305)
@@ -659,23 +659,22 @@ void update_features()
 	// player air break
 	if (featurePlayerAirBrk && bPlayerExists)
 	{
-		// entity forward pos
 		Vector3 entityFPos = (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) ? ENTITY::GET_ENTITY_FORWARD_VECTOR(playerPed) : ENTITY::GET_ENTITY_FORWARD_VECTOR(PED::GET_VEHICLE_PED_IS_USING(playerPed));
-		// entity current pos
 		Vector3 entityCPos = (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) ? ENTITY::GET_ENTITY_COORDS(playerPed, true) : ENTITY::GET_ENTITY_COORDS(PED::GET_VEHICLE_PED_IS_USING(playerPed), true);
+		Entity entityID = (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) ? playerPed : PED::GET_VEHICLE_PED_IS_USING(playerPed);
 
 		if (GetKeyState(0x57) & 0x8000)
-			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, entityCPos.x + (entityFPos.x * g_nAirbrkMultiplier), entityCPos.y + (entityFPos.y * g_nAirbrkMultiplier), entityCPos.z, 0, 0, 0);
+			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(entityID, entityCPos.x + (entityFPos.x * g_nAirbrkMultiplier), entityCPos.y + (entityFPos.y * g_nAirbrkMultiplier), entityCPos.z, 0, 0, 0);
 		if (GetKeyState(0x53) & 0x8000)
-			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, entityCPos.x - (entityFPos.x * g_nAirbrkMultiplier), entityCPos.y - (entityFPos.y * g_nAirbrkMultiplier), entityCPos.z, 0, 0, 0);
+			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(entityID, entityCPos.x - (entityFPos.x * g_nAirbrkMultiplier), entityCPos.y - (entityFPos.y * g_nAirbrkMultiplier), entityCPos.z, 0, 0, 0);
 		if (GetKeyState(0x26) & 0x8000)
-			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, entityCPos.x, entityCPos.y, entityCPos.z + 1.0, 0, 0, 0);
+			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(entityID, entityCPos.x, entityCPos.y, entityCPos.z + 1.0, 0, 0, 0);
 		if (GetKeyState(0x28) & 0x8000)
-			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, entityCPos.x, entityCPos.y, entityCPos.z - 1.0, 0, 0, 0);
+			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(entityID, entityCPos.x, entityCPos.y, entityCPos.z - 1.0, 0, 0, 0);
 		if (GetKeyState(0x41) & 0x8000)
-			ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) + 3.0);
+			ENTITY::SET_ENTITY_HEADING(entityID, ENTITY::GET_ENTITY_HEADING(entityID) + 3.0);
 		if (GetKeyState(0x44) & 0x8000)
-			ENTITY::SET_ENTITY_HEADING(playerPed, ENTITY::GET_ENTITY_HEADING(playerPed) - 3.0);
+			ENTITY::SET_ENTITY_HEADING(entityID, ENTITY::GET_ENTITY_HEADING(entityID) - 3.0);
 	}
 
 	// time pause
